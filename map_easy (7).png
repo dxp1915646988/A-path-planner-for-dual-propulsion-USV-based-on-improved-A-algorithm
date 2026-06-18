@@ -1,0 +1,92 @@
+clc; clear all; clear;
+% 读取地图截图
+img = imread('map_easy.png');
+
+% 转换为 HSV 颜色空间
+hsvImg = rgb2hsv(img);
+H = hsvImg(:,:,1); % 色调
+S = hsvImg(:,:,2); % 饱和度
+V = hsvImg(:,:,3); % 亮度
+
+% --- 分割海域（蓝色范围） ---
+seaMask = (H > 0.45 & H < 0.65) & (S > 0.2);
+
+% --- 岛屿区域 = 取反 ---
+landMask = ~seaMask;
+
+% 填充岛屿内部空洞（确保岛屿是实心的白色）
+landMask = imfill(landMask, 'holes');
+
+% 去掉小碎块（防止噪声）
+landMask = bwareaopen(landMask, 1000);
+
+% 提取岛屿边界
+[B,L] = bwboundaries(landMask, 'noholes');
+
+% --- 绘制结果 ---
+figure('Color','w'); hold on;
+% 海域背景（浅蓝色）
+rectangle('Position',[0 0 size(img,2) size(img,1)], ...
+          'FaceColor',[0.6 0.8 1],'EdgeColor','none');
+
+% 绘制实心白色岛屿
+for k = 1:length(B)
+    boundary = B{k};
+    fill(boundary(:,2), size(img,1)-boundary(:,1), 'w','EdgeColor','none');
+end
+
+axis equal; axis off;
+
+
+%% ---------------- 栅格地图生成 ----------------
+% 设置参数
+gridSize = 250;   % 栅格数量（500*500）
+cellSize = 4;     % 每个栅格边长 (m)
+inflateDist = 2;  % 膨胀距离 (m)
+
+% 将岛屿掩码 landMask 缩放到 500x500 的分辨率
+landMask_resized = imresize(landMask, [gridSize gridSize], 'nearest');
+
+% --- 严格 2m 膨胀 ---
+% 计算欧几里得距离变换 (以像素为单位，每像素=4m)
+distMap = bwdist(landMask_resized);  % 每个点到最近障碍物的距离（单位=像素）
+
+% 需要膨胀的半径 (格子) = 2m / 4m = 0.5 格
+inflateRadius = inflateDist / cellSize;
+
+% 生成膨胀后的障碍物掩码
+landMask_inflated = distMap <= inflateRadius;
+
+% --- 栅格化修正 ---
+gridMap = landMask_inflated;
+
+% --- 绘制栅格地图 ---
+figure('Color','w'); 
+imshow(gridMap);                      % 显示栅格图（imshow 默认 YDir = 'reverse'）
+colormap([1 1 1; 0 0 0]);             % 白色 = 可通行, 黑色 = 障碍
+axis equal; 
+axis on;
+
+% 明确保持 imshow 的默认方向（图像不被翻转）
+set(gca,'YDir','reverse');
+
+% 设置格子刻度（每 50 格一格）并显示为实际米（0:200:2000）
+xticks(0:gridSize/10:gridSize);
+xticklabels(0:gridSize*cellSize/10:gridSize*cellSize);
+yticks(0:gridSize/10:gridSize);
+% 因为图像是 YDir='reverse'（y 值向下增加），我们把刻度标签倒过来，
+% 使得显示为从下往上 0 → 2000（视觉上满足“y 增大向上”的要求）
+yticklabels(fliplr(0:gridSize*cellSize/10:gridSize*cellSize));
+
+% 字体与标签（Times New Roman）
+set(gca,'FontName','Times New Roman','FontSize',12);
+xlabel("$x$/m", "interpreter", "latex", 'FontSize', 14, 'FontName', 'Times New Roman');
+ylabel('$y$/m', "interpreter", "latex", 'FontSize', 14, 'FontName', 'Times New Roman');
+
+axis([0 gridSize 0 gridSize-0.1]);   % 保持显示范围
+grid off;
+
+
+% save('gridMap.mat', 'gridMap');
+
+
