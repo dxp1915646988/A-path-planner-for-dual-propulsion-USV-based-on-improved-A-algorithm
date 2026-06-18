@@ -7,4 +7,4 @@ All source code in this repository was independently developed by myself, and I 
 2. Using the code for personal graduation dissertations, coursework, research projects, competitions, or commercial development;
 3. Reuploading, forwarding, or sharing the entirety or any portion of this repository.
 
-Online viewing for learning reference only is allowed. Unauthorized appropriation of the code will lead to concurrent pursuit of liabilities for academic misconduct and legal liabilities arising from copyright infringement. All rights reserved.
+Online viewing for learning reference only is allowed. Unauthorized appropriation of the code will lead to concurrent pursuit of liabilities for academic misconduct and legal liabilities arising from copyright infringement.
