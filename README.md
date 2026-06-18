@@ -1,0 +1,2 @@
+# A-path-planner-for-dual-propulsion-USV-based-on-improved-A-algorithm
+Proposed a path planner for dual-propulsion USV based on improved A* algorithm. the artificial potential field (APF) algorithm is applied to exert attractive and repulsive potential fields on the target point and each obstacle, and the force on each grid is incorporated into the evaluation function of the A* algorithm for path search
